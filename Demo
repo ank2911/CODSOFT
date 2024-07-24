@@ -1,0 +1,37 @@
+Use-Case Name: Checkout Process
+
+Use-Case Description: This use-case describes the steps a user takes to complete the purchase of items in their cart.
+
+Use-Case ID: UC-001
+
+Version: 1.0
+
+Actors:
+
+User (Customer)
+System (E-Commerce Platform)
+Payment Gateway
+Triggering Points:
+
+User is logged in.
+User has added products to the cart.
+User clicks on the "Proceed to Checkout" button.
+Basic Flow:
+
+User Logs In: The user logs into their account on the e-commerce website.
+Cart Review: The user reviews the items in their cart and confirms the quantity and price.
+Proceed to Checkout: The user clicks the "Proceed to Checkout" button.
+Billing Address: The user enters or selects their billing address.
+Shipping Address: The user enters or selects their shipping address (can be the same as the billing address).
+Shipping Method: The user selects the preferred shipping method.
+Payment Information: The user selects the payment method and enters payment details.
+Order Review: The user reviews the order details including items, shipping, and total cost.
+Place Order: The user confirms and places the order.
+Order Confirmation: The system processes the payment and confirms the order, displaying an order confirmation message to the user.
+Alternative Flows:
+
+User Not Logged In: If the user is not logged in, they are prompted to log in or create an account before proceeding to checkout.
+Cart Empty: If the cart is empty, the user is prompted to add items to the cart before they can proceed to checkout.
+Invalid Payment Information: If the payment information is invalid, the user is prompted to re-enter valid payment details.
+Shipping Address Issues: If the shipping address is not serviceable, the user is prompted to enter a different address.
+Order Modification: If the user decides to modify the order (add/remove items), they can return to the cart, make changes, and proceed to checkout again.

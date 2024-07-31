@@ -1,133 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Container, Grid, Card, CardContent, CardMedia, Typography, CircularProgress, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { configureStore } from '@reduxjs/toolkit';
+import cartReducer from './features/cart/cartSlice';
 
-const ProductListPage = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const store = configureStore({
+  reducer: {
+    cart: cartReducer,
+  },
+});
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('https://dummyjson.com/products');
-        setProducts(response.data.products);
-        setLoading(false);
-      } catch (error) {
-        console.error('There was an error fetching the products!', error);
-        setLoading(false);
+export default store;
+
+
+
+
+
+import { createSlice } from '@reduxjs/toolkit';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: [],
+  reducers: {
+    addToCart: (state, action) => {
+      const item = state.find((product) => product.id === action.payload.id);
+      if (item) {
+        item.quantity += 1;
+      } else {
+        state.push({ ...action.payload, quantity: 1 });
       }
-    };
+    },
+    removeFromCart: (state, action) => {
+      return state.filter((product) => product.id !== action.payload);
+    },
+    increaseQuantity: (state, action) => {
+      const item = state.find((product) => product.id === action.payload);
+      if (item) {
+        item.quantity += 1;
+      }
+    },
+    decreaseQuantity: (state, action) => {
+      const item = state.find((product) => product.id === action.payload);
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+      }
+    },
+  },
+});
 
-    fetchProducts();
-  }, []);
+export const { addToCart, removeFromCart, increaseQuantity, decreaseQuantity } = cartSlice.actions;
+export default cartSlice.reducer;
+
+
+
+
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Button, Drawer, List, ListItem, ListItemText, Typography } from '@mui/material';
+import { removeFromCart, increaseQuantity, decreaseQuantity } from './features/cart/cartSlice';
+
+function Cart({ open, onClose }) {
+  const cart = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+
+  const getTotalPrice = (cart) => cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Products
-      </Typography>
-      {loading ? (
-        <CircularProgress />
-      ) : (
-        <Grid container spacing={4}>
-          {products.map(product => (
-            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={product.thumbnail}
-                  alt={product.title}
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h5" component="div">
-                    {product.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {product.description}
-                  </Typography>
-                  <Typography variant="h6" component="div">
-                    ${product.price}
-                  </Typography>
-                  <Button component={Link} to={`/product/${product.id}`} variant="contained" color="primary">
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      )}
-    </Container>
+    <Drawer anchor="right" open={open} onClose={onClose}>
+      <List style={{ width: 300 }}>
+        {cart.map((item) => (
+          <ListItem key={item.id}>
+            <ListItemText primary={item.title} secondary={`$${item.price}`} />
+            <Button onClick={() => dispatch(decreaseQuantity(item.id))}>-</Button>
+            <Typography>{item.quantity}</Typography>
+            <Button onClick={() => dispatch(increaseQuantity(item.id))}>+</Button>
+            <Button onClick={() => dispatch(removeFromCart(item.id))}>Remove</Button>
+          </ListItem>
+        ))}
+        <ListItem>
+          <ListItemText primary="Total" />
+          <Typography>${getTotalPrice(cart)}</Typography>
+        </ListItem>
+        <ListItem>
+          <Button variant="contained" color="primary">Checkout</Button>
+        </ListItem>
+      </List>
+    </Drawer>
   );
 }
 
-export default ProductListPage;
-
-
-
-
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Container, Typography, CircularProgress, Card, CardContent, CardMedia, Button } from '@mui/material';
-import { useParams, Link } from 'react-router-dom';
-
-const ProductDetailPage = () => {
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(`https://dummyjson.com/products/${id}`);
-        setProduct(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('There was an error fetching the product!', error);
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  return (
-    <Container>
-      <Button component={Link} to="/" variant="contained" color="primary" style={{ margin: '20px 0' }}>
-        Back to Products
-      </Button>
-      {loading ? (
-        <CircularProgress />
-      ) : product ? (
-        <Card>
-          <CardMedia
-            component="img"
-            height="400"
-            image={product.thumbnail}
-            alt={product.title}
-          />
-          <CardContent>
-            <Typography gutterBottom variant="h4" component="div">
-              {product.title}
-            </Typography>
-            <Typography variant="h6" color="text.secondary" component="div">
-              ${product.price}
-            </Typography>
-            <Typography variant="body1" component="p">
-              {product.description}
-            </Typography>
-          </CardContent>
-        </Card>
-      ) : (
-        <Typography variant="h6" color="error">
-          Product not found
-        </Typography>
-      )}
-    </Container>
-  );
-}
-
-export default ProductDetailPage;
+export default Cart;
 
